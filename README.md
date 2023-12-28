@@ -11,8 +11,9 @@ The build has been tested only on ArchLinux. For other systems the process might
 
 ```
 pacman -S dotnet-runtime dotnet-sdk
+cd UnityAnalyzer
 chmod +x install.sh
-sudo install.sh
+sudo ./install.sh
 ```
 
 ## Usage 
@@ -20,3 +21,7 @@ sudo install.sh
 ```
 UnityAnalyzer unity_project_path output_folder_path
 ```
+
+## Test 
+
+The project `UnityAnalyzer.Tests` contains unit tests for the app.

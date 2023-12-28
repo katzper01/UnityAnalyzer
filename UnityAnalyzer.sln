@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityAnalyzer", "UnityAnalyzer.csproj", "{F77C6A6F-147F-4E2B-BDC0-0812D475BA28}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityAnalyzer", "UnityAnalyzer\UnityAnalyzer.csproj", "{F77C6A6F-147F-4E2B-BDC0-0812D475BA28}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityAnalyzer.Tests", "..\UnityAnalyzer.Tests\UnityAnalyzer.Tests.csproj", "{83E2BB9E-E996-41C1-8898-4D879C0D12B2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityAnalyzer.Tests", "UnityAnalyzer.Tests\UnityAnalyzer.Tests.csproj", "{83E2BB9E-E996-41C1-8898-4D879C0D12B2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
