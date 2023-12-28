@@ -3,27 +3,35 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using UnityAnalyzer.data;
+using UnityAnalyzer.filesystem;
+using UnityAnalyzer.parse;
 
-namespace UnityAnalyzer.parse;
+namespace UnityAnalyzer.service;
 
-public class UnityProjectParser(string projectRootPath)
+public interface IParser
 {
-    public IEnumerable<Script> ParseScripts()
+    public List<Script> ParseScripts(string projectRootPath);
+    public List<Scene> ParseScenes(string projectRootPath);
+}
+
+public class Parser(IFileSystem fileSystem) : IParser
+{
+    public List<Script> ParseScripts(string projectRootPath)
     {
-        var scriptFilePaths = Directory.GetFiles(projectRootPath, "*.cs", SearchOption.AllDirectories);
+        var scriptFilePaths = fileSystem.GetFilesInDirectory(projectRootPath, "*.cs");
 
         // This could be 100% parallelized.
         return scriptFilePaths.Select(path =>
         {
             var serializedFields = GetSerializedFields(path);
             var guid = GetGuid(path);
-            return new Script(path[(projectRootPath.Length+1)..], serializedFields, guid);
-        });
+            return new Script(path[(projectRootPath.Length + 1)..], serializedFields, guid);
+        }).ToList();
     }
 
-    private static HashSet<string> GetSerializedFields(string path)
+    private HashSet<string> GetSerializedFields(string path)
     {
-        var scriptFileContent = File.ReadAllText(path);
+        var scriptFileContent = fileSystem.ReadAllTextFromFile(path);
         
         return
         [
@@ -39,44 +47,48 @@ public class UnityProjectParser(string projectRootPath)
         ];
     }
     
-    private static string GetGuid(string path)
+    private string GetGuid(string path)
     {
-        var metaFilePath = path + ".meta";
-        var metaFileContent = File.ReadAllText(metaFilePath);
+        var metaFilePath = $"{path}.meta";
 
-        var parsedMetaFile = new ParsedYamlDocument(metaFileContent);
-        return parsedMetaFile.GetValue("guid")!.ToString()
-               ?? throw new Exception($"Found no guid in script meta file: {path}.");
+        if (!fileSystem.FileExists(metaFilePath))
+            throw new Exception($"Script meta file not found for {path}.");
+        
+        var metaFileContent = fileSystem.ReadAllTextFromFile(metaFilePath);
+        var parsedMetaFile = new YamlDictionary(metaFileContent);
+        
+        return parsedMetaFile.GetValue("guid")?.ToString()
+               ?? throw new Exception($"Found no guid in script meta file: {metaFilePath}.");
     }
 
-    public IEnumerable<Scene> ParseScenes()
+    public List<Scene> ParseScenes(string projectRootPath)
     {
-        var sceneFiles = Directory.GetFiles(projectRootPath, "*.unity", SearchOption.AllDirectories);
+        var sceneFiles = fileSystem.GetFilesInDirectory(projectRootPath, "*.unity");
 
         // This could be 100% parallelized.
-        return sceneFiles.Select(CreateSceneFromFile);
+        return sceneFiles.Select(CreateSceneFromFile).ToList();
     }
 
-    private static Scene CreateSceneFromFile(string path)
+    private Scene CreateSceneFromFile(string path)
     {
         var fidToGameObjectName = new Dictionary<long, string>();
         var gameObjectFidToTransform = new Dictionary<long, Transform>();
         var monoBehaviours = new List<MonoBehaviour>();
         
         var sceneName = path.Split("/").Last()[..^6];
-        var sceneFileSections = File.ReadAllText(path).Split("--- ");
+        var sceneFileSections = fileSystem.ReadAllTextFromFile(path).Split("--- ");
         
         foreach (var s in sceneFileSections[1..])
         {
             var (header, content) = s.Split('\n', count: 2) switch
             {
                 { Length: 2 } a => (a[0], a[1]),
-                _ => throw new Exception($"Invalid unity scene asset {s}.")
+                _ => throw new Exception($"Invalid unity scene: {path}.")
             };
 
             var fileId = Convert.ToInt64(header.Split('&')[1]);
             
-            var asset = new ParsedYamlDocument(content);
+            var asset = new YamlDictionary(content);
 
             if (asset.GetValue("GameObject") != null)
             {
@@ -117,7 +129,7 @@ public class UnityProjectParser(string projectRootPath)
         return new Scene(sceneName, gameObjects, monoBehaviours);
     }
 
-    private static GenericAsset ToGenericAsset(ParsedYamlDocument parsed, string path)
+    private GenericAsset ToGenericAsset(YamlDictionary parsed, string path)
     {
         var fid = Convert.ToInt64(parsed.GetValue($"{path}.fileID"));
         var guid = parsed.GetValue($"{path}.guid")?.ToString() ?? null;

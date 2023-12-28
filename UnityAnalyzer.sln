@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityAnalyzer", "UnityAnalyzer.csproj", "{F77C6A6F-147F-4E2B-BDC0-0812D475BA28}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnityAnalyzer.Tests", "..\UnityAnalyzer.Tests\UnityAnalyzer.Tests.csproj", "{83E2BB9E-E996-41C1-8898-4D879C0D12B2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{F77C6A6F-147F-4E2B-BDC0-0812D475BA28}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F77C6A6F-147F-4E2B-BDC0-0812D475BA28}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F77C6A6F-147F-4E2B-BDC0-0812D475BA28}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83E2BB9E-E996-41C1-8898-4D879C0D12B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83E2BB9E-E996-41C1-8898-4D879C0D12B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83E2BB9E-E996-41C1-8898-4D879C0D12B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83E2BB9E-E996-41C1-8898-4D879C0D12B2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

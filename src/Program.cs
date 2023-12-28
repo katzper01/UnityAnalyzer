@@ -1,26 +1,24 @@
-﻿using UnityAnalyzer;
-using UnityAnalyzer.parse;
+﻿using UnityAnalyzer.filesystem;
+using UnityAnalyzer.service;
 
 if (args.Length < 2) {
     PrintHelpMessage();
     return;
 }
 
-var projectPath = args[0];
+var projectRootPath = args[0];
 var outputPath = args[1];
 
-if (!Directory.Exists(projectPath))
-    throw new Exception($"Specified unity project root directory: {projectPath} does not exist.");
-if (!Directory.Exists(outputPath))
-    throw new Exception($"Specified output directory: {outputPath} does not exist.");
-        
-var unityProjectParser = new UnityProjectParser(projectPath);
+var fileSystem = new FileSystem();
 
-var scripts = unityProjectParser.ParseScripts().ToList();
-var scenes = unityProjectParser.ParseScenes().ToList();
-        
-UnityAnalyzerService.PrintScenesHierarchy(scenes, outputPath);
-UnityAnalyzerService.PrintUnusedScripts(scenes, scripts, outputPath);
+var unityAnalyzer = new UnityAnalyzer.UnityAnalyzer(
+    fileSystem,
+    new Parser(fileSystem),
+    new Analyzer(fileSystem)
+);
+
+unityAnalyzer.Start(projectRootPath, outputPath);
+
 return;
 
 void PrintHelpMessage()

@@ -2,23 +2,23 @@ using YamlDotNet.Serialization;
 
 namespace UnityAnalyzer.parse;
 
-public class ParsedYamlDocument
+public class YamlDictionary
 {
-    private Dictionary<object, object> data;
+    private readonly Dictionary<object, object> _data;
     
-    public ParsedYamlDocument(string yaml)
+    public YamlDictionary(string yaml)
     {
         var deserializer = new Deserializer();
         var deserializedYaml = deserializer.Deserialize(yaml);
-        data = (Dictionary<object, object>)deserializedYaml! 
+        _data = (Dictionary<object, object>)deserializedYaml! 
                ?? throw new Exception($"Invalid yaml for deserialization: {yaml}.");
     }
 
     public object? GetValue(string path)
     {
-        if (path == "") return data; 
+        if (path == "") return _data; 
         
-        object value = data;
+        object value = _data;
 
         foreach (var s in path.Split("."))
         {

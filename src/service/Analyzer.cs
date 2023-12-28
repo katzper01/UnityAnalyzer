@@ -1,19 +1,24 @@
 using UnityAnalyzer.data;
+using UnityAnalyzer.filesystem;
 
-namespace UnityAnalyzer;
+namespace UnityAnalyzer.service;
 
-public static class UnityAnalyzerService
+public interface IAnalyzer
 {
-    public static void PrintScenesHierarchy(List<Scene> scenes, string outputPath)
+    public void PrintScenesHierarchy(List<Scene> scenes, string outputPath);
+    public void PrintUnusedScripts(IEnumerable<Scene> scenes, IReadOnlyCollection<Script> scripts, string outputPath);
+}
+
+public class Analyzer(IFileSystem fileSystem) : IAnalyzer
+{ 
+    public void PrintScenesHierarchy(List<Scene> scenes, string outputPath)
     {
         // This could be parallelized for sure.
         foreach (var scene in scenes)
-        {
-            File.WriteAllText($"{outputPath}/{scene.Name}.unity.dump", GetSceneHierarchy(scene));
-        }
+            fileSystem.WriteAllTextToFile($"{outputPath}/{scene.Name}.unity.dump", GetSceneHierarchy(scene));
     }
 
-    private static string GetSceneHierarchy(Scene scene)
+    private string GetSceneHierarchy(Scene scene)
     {
         var fidToGameObject = new Dictionary<long, GameObject>();
         var fidToTransform = new Dictionary<long, Transform>();
@@ -39,14 +44,12 @@ public static class UnityAnalyzerService
         var dumpString = new StringWriter();
         
         foreach (var fid in fidToGameObject.Keys.Where(fid => !nonRoots.Contains(fid)))
-        {
             HierarchyDfs(fid, 0, fidToGameObject, hierarchyGraph, dumpString);
-        }
  
         return dumpString.ToString();
     }
     
-    private static void HierarchyDfs(
+    private void HierarchyDfs(
         long vertexFid, 
         int depth, 
         IReadOnlyDictionary<long, GameObject> fidToGameObject, 
@@ -61,7 +64,7 @@ public static class UnityAnalyzerService
         }
     }
 
-    public static void PrintUnusedScripts(IEnumerable<Scene> scenes, IReadOnlyCollection<Script> scripts, string outputPath)
+    public void PrintUnusedScripts(IEnumerable<Scene> scenes, IReadOnlyCollection<Script> scripts, string outputPath)
     {
         var dumpString = new StringWriter();
         dumpString.Write("Relative Path,GUID\n");
@@ -73,13 +76,13 @@ public static class UnityAnalyzerService
         
         var usedScriptsGuids = new HashSet<string>();
         
-        foreach (var monoBehavior in scenes.SelectMany(scene => scene.MonoBehaviors))
+        foreach (var monoBehaviour in scenes.SelectMany(scene => scene.MonoBehaviours))
         {
-            if (monoBehavior.Script.Guid == null) continue;
-            var script = guidToScript[monoBehavior.Script.Guid];
+            if (monoBehaviour.Script.Guid == null) continue;
+            var script = guidToScript[monoBehaviour.Script.Guid];
             usedScriptsGuids.Add(script.Guid);
 
-            foreach (var (name, field) in monoBehavior.SerializedFieldsAssets)
+            foreach (var (name, field) in monoBehaviour.SerializedFieldsAssets)
             {
                 if (field.Guid != null && script.SerializedFields.Contains(name))
                     usedScriptsGuids.Add(field.Guid);
@@ -91,6 +94,6 @@ public static class UnityAnalyzerService
             dumpString.Write($"{script.Path},{script.Guid}\n");
         }
         
-        File.WriteAllText($"{outputPath}/UnusedScripts.csv", dumpString.ToString());
+        fileSystem.WriteAllTextToFile($"{outputPath}/UnusedScripts.csv", dumpString.ToString());
     }
 }
