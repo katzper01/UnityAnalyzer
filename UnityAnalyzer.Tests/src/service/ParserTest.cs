@@ -74,10 +74,10 @@ public class ParserTest
             .Returns(false);
         
         // when
-        var ex = Assert.ThrowsException<Exception>(() => _parser.ParseScripts(TestConstants.ProjectPath));
+        var ex = Assert.ThrowsException<AggregateException>(() => _parser.ParseScripts(TestConstants.ProjectPath));
         
         // then
-        Assert.AreEqual($"Script meta file not found for {TestConstants.ScriptPath1}.", ex.Message);
+        Assert.AreEqual($"Script meta file not found for {TestConstants.ScriptPath1}.", ex.InnerExceptions[0].Message);
     }
 
     [TestMethod]
@@ -89,10 +89,10 @@ public class ParserTest
             .Returns(TestConstants.InvalidScriptMeta1);
         
         // when
-        var ex = Assert.ThrowsException<Exception>(() => _parser.ParseScripts(TestConstants.ProjectPath));
+        var ex = Assert.ThrowsException<AggregateException>(() => _parser.ParseScripts(TestConstants.ProjectPath));
         
         // then
-        Assert.AreEqual($"Found no guid in script meta file: {TestConstants.ScriptPath1}.meta.", ex.Message);
+        Assert.AreEqual($"Found no guid in script meta file: {TestConstants.ScriptPath1}.meta.", ex.InnerExceptions[0].Message);
     }
 
     [TestMethod]
@@ -119,9 +119,9 @@ public class ParserTest
             .Returns(TestConstants.InvalidSerializedScene1);
         
         // when
-        var ex = Assert.ThrowsException<Exception>(() => _parser.ParseScenes(TestConstants.ProjectPath));
+        var ex = Assert.ThrowsException<AggregateException>(() => _parser.ParseScenes(TestConstants.ProjectPath));
         
         // then
-        Assert.AreEqual($"Invalid unity scene: {TestConstants.ScenePath1}.", ex.Message);
+        Assert.AreEqual($"Invalid unity scene: {TestConstants.ScenePath1}.", ex.InnerExceptions[0].Message);
     }
 }
