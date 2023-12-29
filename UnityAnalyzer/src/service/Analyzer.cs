@@ -13,9 +13,9 @@ public class Analyzer(IFileSystem fileSystem) : IAnalyzer
 { 
     public void PrintScenesHierarchy(List<Scene> scenes, string outputPath)
     {
-        // This could be parallelized for sure.
-        foreach (var scene in scenes)
-            fileSystem.WriteAllTextToFile($"{outputPath}/{scene.Name}.unity.dump", GetSceneHierarchy(scene));
+        Parallel.ForEach(scenes, scene =>
+            fileSystem.WriteAllTextToFile($"{outputPath}/{scene.Name}.unity.dump", GetSceneHierarchy(scene))
+        );
     }
 
     private string GetSceneHierarchy(Scene scene)

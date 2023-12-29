@@ -19,14 +19,16 @@ public class Parser(IFileSystem fileSystem) : IParser
     public List<Script> ParseScripts(string projectRootPath)
     {
         var scriptFilePaths = fileSystem.GetFilesInDirectory(projectRootPath, "*.cs");
-
-        // This could be 100% parallelized.
-        return scriptFilePaths.Select(path =>
-        {
-            var serializedFields = GetSerializedFields(path);
-            var guid = GetGuid(path);
-            return new Script(path[(projectRootPath.Length + 1)..], serializedFields, guid);
-        }).ToList();
+        
+        return scriptFilePaths
+            .AsParallel()
+            .Select(path =>
+            {
+                var serializedFields = GetSerializedFields(path);
+                var guid = GetGuid(path);
+                return new Script(path[(projectRootPath.Length + 1)..], serializedFields, guid);
+            })
+            .ToList();
     }
 
     private HashSet<string> GetSerializedFields(string path)
@@ -64,9 +66,11 @@ public class Parser(IFileSystem fileSystem) : IParser
     public List<Scene> ParseScenes(string projectRootPath)
     {
         var sceneFiles = fileSystem.GetFilesInDirectory(projectRootPath, "*.unity");
-
-        // This could be 100% parallelized.
-        return sceneFiles.Select(CreateSceneFromFile).ToList();
+        
+        return sceneFiles
+            .AsParallel()
+            .Select(CreateSceneFromFile)
+            .ToList();
     }
 
     private Scene CreateSceneFromFile(string path)
